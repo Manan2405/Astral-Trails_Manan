@@ -33,12 +33,34 @@ with tabs[0]:
     st.write("---") # Separator for new inputs
     st.subheader("Customize for Individual Factors")
     
-    age = st.slider("Select Age (Years)", 0, 100, 30)
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        age_slider = st.slider("Select Age (Years)", 0, 100, 30, key="age_slider")
+    with col2:
+        age_input = st.number_input(" ", min_value=0, max_value=100, value=age_slider, key="age_input")
+    
+    # Sync values
+    if age_slider != age_input:
+        age = age_input
+    else:
+        age = age_slider
+
     gender = st.selectbox("Select Gender", ["Male", "Female", "Prefer not to say"])
 
     st.write("---") # Separator for original content
 
-    dose = st.slider("Select Radiation Dose (mSv)", 0, 10000, 200)
+    col3, col4 = st.columns([3, 1])
+    with col3:
+        dose_slider = st.slider("Select Radiation Dose (mSv)", 0, 10000, 200, key="dose_slider")
+    with col4:
+        dose_input = st.number_input(" ", min_value=0, max_value=10000, value=dose_slider, key="dose_input")
+    
+    # Sync values
+    if dose_slider != dose_input:
+        dose = dose_input
+    else:
+        dose = dose_slider
+
 
     # --- NEW: Calculate Age and Gender Risk Modifiers ---
     # These modifiers will influence the effective dose or risk threshold
