@@ -102,62 +102,71 @@ with tabs[0]:
 
     st.subheader("📊 Interactive Risk Severity Chart")
     
-    # Define thresholds and labels
+    # Define thresholds, labels, and colors
     thresholds = [0, 100, 500, 1000, 3000, 6000, 10000]
     labels = [
-        "None", "Minor Risk", "Mild ARS", "Severe ARS", "Lethal Risk", "Extreme Lethal", "Fatal"
+        "No Effects", "Minor Risk", "Mild ARS", "Severe ARS", "Lethal", "Extreme", "Fatal"
     ]
     colors = ["#2ecc71", "#f1c40f", "#f39c12", "#e67e22", "#e74c3c", "#c0392b"]
-    
-    # Create colored zones
-    shapes = []
-    for i in range(len(thresholds) - 1):
-        shapes.append(
-            dict(
-                type="rect",
-                xref="x", yref="y",
-                x0=thresholds[i], x1=thresholds[i + 1],
-                y0=0, y1=1,
-                fillcolor=colors[i],
-                opacity=0.3,
-                line=dict(width=0),
-            )
-        )
     
     # Create figure
     fig = go.Figure()
     
-    # Add dummy trace for formatting
-    fig.add_trace(go.Scatter(x=thresholds, y=[0.5] * len(thresholds), mode='lines', line=dict(width=0), showlegend=False))
+    # Add background colored zones with text annotations
+    for i in range(len(thresholds) - 1):
+        fig.add_shape(
+            type="rect",
+            x0=thresholds[i],
+            x1=thresholds[i + 1],
+            y0=0,
+            y1=1,
+            fillcolor=colors[i],
+            opacity=0.3,
+            layer="below",
+            line_width=0,
+        )
+        fig.add_annotation(
+            x=(thresholds[i] + thresholds[i + 1]) / 2,
+            y=0.95,
+            text=labels[i],
+            showarrow=False,
+            font=dict(size=12),
+            opacity=0.8
+        )
     
-    # Add actual dose and adjusted dose markers
-    fig.add_trace(go.Scatter(x=[dose], y=[0.5], mode='markers+text',
-                             marker=dict(color='blue', size=12),
-                             name="Original Dose",
-                             text=["Original Dose"],
-                             textposition="top center"))
+    # Plot dose markers
+    fig.add_trace(go.Scatter(
+        x=[dose],
+        y=[0.5],
+        mode='markers+text',
+        name='Original Dose',
+        marker=dict(color='blue', size=12),
+        text=["Original"],
+        textposition="bottom center"
+    ))
     
-    fig.add_trace(go.Scatter(x=[adjusted_dose], y=[0.5], mode='markers+text',
-                             marker=dict(color='red', size=12),
-                             name="Adjusted Dose",
-                             text=["Adjusted Dose"],
-                             textposition="top center"))
+    fig.add_trace(go.Scatter(
+        x=[adjusted_dose],
+        y=[0.5],
+        mode='markers+text',
+        name='Adjusted Dose',
+        marker=dict(color='red', size=12),
+        text=["Adjusted"],
+        textposition="top center"
+    ))
     
-    # Update layout
+    # Layout cleanup
     fig.update_layout(
-        title="Radiation Dose vs. Biological Risk",
         xaxis=dict(title="Dose (mSv)", range=[0, 10000]),
-        yaxis=dict(showticklabels=False),
-        shapes=shapes,
-        height=300,
+        yaxis=dict(visible=False),  # hide useless Y axis
+        title="Radiation Dose vs. Biological Risk",
+        height=250,
+        margin=dict(t=40, b=40),
         showlegend=True
     )
     
+    # Display it
     st.plotly_chart(fig, use_container_width=True)
-
-
-    # Table: Organ-specific susceptibility (simplified) (Existing Logic - NOT MODIFIED)
-    st.subheader("Organ Susceptibility (Generalized)")
 
     import pandas as pd
     df = pd.DataFrame({
