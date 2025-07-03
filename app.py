@@ -98,32 +98,63 @@ with tabs[0]:
 
     st.info(f"Biological Effect at *{dose} mSv* (Adjusted for your profile): *{effect}*")
 
-    # Plot: Dose vs Risk Severity (Existing Logic - NOT MODIFIED directly in calculation,
-    # but the vertical line will reflect the original dose slider)
-    import matplotlib.pyplot as plt
+    import plotly.graph_objects as go
 
-    st.subheader("Risk Severity Chart")
-
-    doses = [0, 100, 500, 1000, 3000, 6000, 10000]
-    risks = [0, 1, 2, 3, 4, 5, 6]
+    st.subheader("📊 Interactive Risk Severity Chart")
+    
+    # Define thresholds and labels
+    thresholds = [0, 100, 500, 1000, 3000, 6000, 10000]
     labels = [
         "None", "Minor Risk", "Mild ARS", "Severe ARS", "Lethal Risk", "Extreme Lethal", "Fatal"
     ]
+    colors = ["#2ecc71", "#f1c40f", "#f39c12", "#e67e22", "#e74c3c", "#c0392b"]
+    
+    # Create colored zones
+    shapes = []
+    for i in range(len(thresholds) - 1):
+        shapes.append(
+            dict(
+                type="rect",
+                xref="x", yref="y",
+                x0=thresholds[i], x1=thresholds[i + 1],
+                y0=0, y1=1,
+                fillcolor=colors[i],
+                opacity=0.3,
+                line=dict(width=0),
+            )
+        )
+    
+    # Create figure
+    fig = go.Figure()
+    
+    # Add dummy trace for formatting
+    fig.add_trace(go.Scatter(x=thresholds, y=[0.5] * len(thresholds), mode='lines', line=dict(width=0), showlegend=False))
+    
+    # Add actual dose and adjusted dose markers
+    fig.add_trace(go.Scatter(x=[dose], y=[0.5], mode='markers+text',
+                             marker=dict(color='blue', size=12),
+                             name="Original Dose",
+                             text=["Original Dose"],
+                             textposition="top center"))
+    
+    fig.add_trace(go.Scatter(x=[adjusted_dose], y=[0.5], mode='markers+text',
+                             marker=dict(color='red', size=12),
+                             name="Adjusted Dose",
+                             text=["Adjusted Dose"],
+                             textposition="top center"))
+    
+    # Update layout
+    fig.update_layout(
+        title="Radiation Dose vs. Biological Risk",
+        xaxis=dict(title="Dose (mSv)", range=[0, 10000]),
+        yaxis=dict(showticklabels=False),
+        shapes=shapes,
+        height=300,
+        showlegend=True
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
 
-    fig, ax = plt.subplots()
-    ax.plot(doses, risks, color='darkred', linewidth=3)
-    # Plot both original dose and adjusted dose
-    ax.axvline(dose, color='blue', linestyle='--', label=f'Selected Dose: {dose} mSv')
-    ax.axvline(adjusted_dose, color='red', linestyle=':', label=f'Adjusted Dose: {adjusted_dose:.0f} mSv')
-    ax.set_xticks(doses)
-    ax.set_xticklabels([str(d) for d in doses])
-    ax.set_yticks(risks)
-    ax.set_yticklabels(labels)
-    ax.set_xlabel("Dose (mSv)")
-    ax.set_ylabel("Biological Risk")
-    ax.set_title("Radiation Dose vs. Health Risk")
-    ax.legend() # Show legend for the lines
-    st.pyplot(fig)
 
     # Table: Organ-specific susceptibility (simplified) (Existing Logic - NOT MODIFIED)
     st.subheader("Organ Susceptibility (Generalized)")
